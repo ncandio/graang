@@ -1,6 +1,6 @@
 <img src="images/graang.jpg" alt="graange logo" width="200" height="200">
 
-# graang -  migrate datadog dashboard to grafana dashboard by converting the json formats 
+# graang -  Observability utilities collection - Collection of utilities in different languages in order to facilitate migrations from  datadog   grafana dashboard
 
 Graang  - Collection of utilities in different languages in order to facilitate migrations from  datadog   grafana dashboard and other different formats 
 
