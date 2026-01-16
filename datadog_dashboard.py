@@ -3,30 +3,32 @@ import sys
 from collections import defaultdict
 import textwrap
 from operator import itemgetter
+from typing import Dict, List, Any, Optional, Union
 
 from errors import DashboardParsingError
 
 
 class DatadogDashboard:
-    def __init__(self, dashboard_path):
-        self.dashboard_path = dashboard_path
-        self.title = "Untitled Dashboard"
-        self.description = ""
-        self.widgets = []
-        self.group_widgets = []
-        self.nested_widgets = []
-        self.data = {}
-        self.is_valid = False
-        self.total_queries = 0
-        self.query_types = defaultdict(int)
-        self.metric_sources = defaultdict(int)
-        self.widget_types = defaultdict(int)
-        self.visualization_types = defaultdict(int)
-        self.template_variables = []
+    def __init__(self, dashboard_path: str) -> None:
+        self.dashboard_path: str = dashboard_path
+        self.title: str = "Untitled Dashboard"
+        self.description: str = ""
+        self.widgets: List[Dict[str, Any]] = []
+        self.group_widgets: List[Dict[str, Any]] = []
+        self.nested_widgets: List[Dict[str, Any]] = []
+        self.data: Dict[str, Any] = {}
+        self.is_valid: bool = False
+        self.total_queries: int = 0
+        self.query_types: Dict[str, int] = defaultdict(int)
+        self.metric_sources: Dict[str, int] = defaultdict(int)
+        self.widget_types: Dict[str, int] = defaultdict(int)
+        self.visualization_types: Dict[str, int] = defaultdict(int)
+        self.template_variables: List[Dict[str, Any]] = []
 
         try:
             with open(self.dashboard_path) as f:
                 self.data = json.load(f)
+                self.validate_dashboard_structure()
                 self.parse_dashboard()
         except FileNotFoundError:
             raise DashboardParsingError(f"Dashboard file '{self.dashboard_path}' not found. Please check the file path or ensure the file exists.")
@@ -35,7 +37,21 @@ class DatadogDashboard:
         except Exception as e:
             raise DashboardParsingError(f"Error reading dashboard: {str(e)}")
 
-    def parse_dashboard(self):
+    def validate_dashboard_structure(self) -> bool:
+        """Validate the basic structure of the dashboard JSON"""
+        if not isinstance(self.data, dict):
+            raise DashboardParsingError("Dashboard data is not a valid JSON object")
+
+        if 'title' not in self.data:
+            print("Warning: Dashboard has no title")
+
+        # Check if it has the required sections
+        if 'widgets' not in self.data and 'graphs' not in self.data:
+            raise DashboardParsingError("Dashboard does not contain 'widgets' or 'graphs' section")
+
+        return True
+
+    def parse_dashboard(self) -> None:
         """Parse dashboard data and extract relevant information"""
         if 'widgets' in self.data:
             self.is_valid = True
@@ -59,9 +75,9 @@ class DatadogDashboard:
             self.widgets = self.data['graphs']
             self.process_widgets(self.widgets)
         else:
-            print("Error: Dashboard does not contain 'widgets' or 'graphs' section")
+            raise DashboardParsingError("Dashboard does not contain 'widgets' or 'graphs' section")
 
-    def process_widgets(self, widgets, is_nested=False):
+    def process_widgets(self, widgets: List[Dict[str, Any]], is_nested: bool = False) -> None:
         """Process each widget and extract information"""
         for widget in widgets:
             # Store widget type information
@@ -94,7 +110,7 @@ class DatadogDashboard:
                         elif isinstance(requests, dict):
                             [self.process_request(r) for request_value in requests.values() for r in (request_value if isinstance(request_value, list) else [request_value]) if isinstance(r, dict)]
 
-    def process_request(self, request):
+    def process_request(self, request: Dict[str, Any]) -> None:
         """Process a request and extract query information"""
         if 'q' in request:
             self.total_queries += 1
@@ -115,7 +131,7 @@ class DatadogDashboard:
                     query_type = query_obj.get('name', 'unknown')
                     self.query_types[query_type] += 1
 
-    def analyze_query(self, query):
+    def analyze_query(self, query: str) -> None:
         """Analyze a query string to extract metric sources"""
         # Extract metric sources
         try:
@@ -129,7 +145,7 @@ class DatadogDashboard:
         except ValueError as e:
             print(f"Warning: Failed to analyze query due to a value error. Query: '{query}', Error: {type(e).__name__}: {e}")
 
-    def print_report(self):
+    def print_report(self) -> None:
         """
         Print a comprehensive report about the dashboard.
 
@@ -212,7 +228,7 @@ class DatadogDashboard:
 
         print("\n" + "="*80)
 
-    def print_widget_hierarchy(self, widgets, indent=0):
+    def print_widget_hierarchy(self, widgets: List[Dict[str, Any]], indent: int = 0) -> None:
         """Print the widget hierarchy with indentation"""
         for i, widget in enumerate(widgets):
             if 'definition' in widget:
@@ -243,7 +259,7 @@ class DatadogDashboard:
                                 for j, r in enumerate(request):
                                     self.print_request_info(r, indent + 6, j)
 
-    def print_request_info(self, request, indent, index):
+    def print_request_info(self, request: Dict[str, Any], indent: int, index: Union[int, str]) -> None:
         """
         Print information about a request, including queries, subqueries, and formulas.
 

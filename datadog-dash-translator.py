@@ -6,10 +6,11 @@ import sys
 from collections import defaultdict
 import textwrap
 from operator import itemgetter
+from typing import Dict, List, Any, Optional, Union, Tuple
 from datadog_dashboard import DatadogDashboard
 from errors import DashboardParsingError
 
-def main():
+def main() -> None:
     # Parse the arguments
     parser = argparse.ArgumentParser(description='Analyze Datadog dashboard and optionally convert to Grafana format')
     parser.add_argument('dashboard', help='the datadog dashboard JSON file to analyze')
@@ -44,7 +45,7 @@ def main():
     else:
         dd_dashboard.print_report()
 
-def convert_to_grafana(dd_dashboard, args):
+def convert_to_grafana(dd_dashboard: Any, args: Any) -> Dict[str, Any]:  # Using Any for args since it's an argparse.Namespace
     """
     Convert Datadog dashboard to Grafana format
 
@@ -58,7 +59,7 @@ def convert_to_grafana(dd_dashboard, args):
     Raises:
         ValueError: If there's an error with grid position format
     """
-    grafana_dashboard = {
+    grafana_dashboard: Dict[str, Any] = {
         "id": None,
         "uid": args.uid,
         "title": dd_dashboard.title,
@@ -92,7 +93,7 @@ def convert_to_grafana(dd_dashboard, args):
     # - "timeseries" in Datadog maps to "timeseries" in Grafana.
     # - "toplist" in Datadog maps to "table" in Grafana.
     # - "group" widgets in Datadog are mapped to "row" in Grafana, representing a logical grouping of panels.
-    widget_type_to_panel_type = {
+    widget_type_to_panel_type: Dict[str, str] = {
         "timeseries": "timeseries",
         "toplist": "table",
         "heatmap": "heatmap",
@@ -106,7 +107,7 @@ def convert_to_grafana(dd_dashboard, args):
     if not dd_dashboard.widgets:
         print("Warning: No widgets found in the Datadog dashboard. Creating an empty Grafana dashboard.")
     else:
-        panel_id = 1
+        panel_id: int = 1
         for widget in dd_dashboard.widgets:
             if 'definition' in widget:
                 definition = widget['definition']
@@ -147,7 +148,7 @@ def convert_to_grafana(dd_dashboard, args):
 
     return grafana_dashboard
 
-def convert_request_to_target(request, datasource):
+def convert_request_to_target(request: Dict[str, Any], datasource: str) -> Optional[Union[Dict[str, Any], List[Dict[str, Any]]]]:
     """
     Convert a Datadog request to a Grafana target.
     """
@@ -160,7 +161,7 @@ def convert_request_to_target(request, datasource):
     elif 'queries' in request and isinstance(request['queries'], list):
         # Handle the case where the query is in the 'queries' array
         # This might require adjustments based on the exact structure of your Datadog queries
-        targets = []
+        targets: List[Dict[str, Any]] = []
         for i, query_obj in enumerate(request['queries']):
             if 'query' in query_obj:
                 target = {

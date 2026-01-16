@@ -1,9 +1,13 @@
 """Custom exceptions for the GRAANG project."""
 
+from typing import Optional
+
 
 class GraangError(Exception):
     """Base exception class for GRAANG."""
-    pass
+    def __init__(self, message: str) -> None:
+        super().__init__(message)
+        self.message = message
 
 
 class DashboardParsingError(GraangError):
