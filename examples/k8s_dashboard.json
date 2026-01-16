@@ -1,0 +1,69 @@
+{
+  "title": "Kubernetes Cluster Overview",
+  "description": "Basic k8s infra dashboard",
+  "layout_type": "ordered",
+  "is_read_only": false,
+  "notify_list": [],
+  "template_variables": [
+    {
+      "name": "kube_cluster",
+      "prefix": "kube_cluster_name",
+      "default": "*"
+    },
+    {
+      "name": "namespace",
+      "prefix": "kube_namespace",
+      "default": "*"
+    }
+  ],
+  "widgets": [
+    {
+      "definition": {
+        "type": "timeseries",
+        "title": "CPU Usage by Node",
+        "requests": [
+          {
+            "q": "avg:kubernetes.cpu.usage.total{$kube_cluster,$namespace} by {kube_node}",
+            "display_type": "line"
+          }
+        ]
+      }
+    },
+    {
+      "definition": {
+        "type": "timeseries",
+        "title": "Memory Usage by Node",
+        "requests": [
+          {
+            "q": "avg:kubernetes.memory.usage.total{$kube_cluster,$namespace} by {kube_node}",
+            "display_type": "line"
+          }
+        ]
+      }
+    },
+    {
+      "definition": {
+        "type": "timeseries",
+        "title": "Running Pods by Namespace",
+        "requests": [
+          {
+            "q": "sum:kubernetes.pods.running{$kube_cluster,$namespace} by {kube_namespace}",
+            "display_type": "area"
+          }
+        ]
+      }
+    },
+    {
+      "definition": {
+        "type": "query_value",
+        "title": "Pending Pods (cluster)",
+        "requests": [
+          {
+            "q": "sum:kubernetes.pods.pending{$kube_cluster}",
+            "aggregator": "sum"
+          }
+        ]
+      }
+    }
+  ]
+}
