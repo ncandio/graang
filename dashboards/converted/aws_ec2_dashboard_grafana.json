@@ -1,0 +1,861 @@
+{
+  "id": null,
+  "uid": "c1f4f0ed",
+  "title": "Cloud Optimization - AWS EC2",
+  "tags": [
+    "converted-from-datadog"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 36,
+  "version": 1,
+  "refresh": "5s",
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Untitled Panel",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 4
+      },
+      "type": "text",
+      "content": "## EC2 max and average CPU utilization\nFocusing on the average and max CPU utilization by instance type can help identify instances that are being underutilized. It's also important to look out for instance that are running *hot* at 90-100%. This can indicate that an application may not have enough resources. This can lead to reduced response time, increased errors, or crashes. \n\nThe EC2 max and average CPU utilization widgets will highlight usage **<= 30%** and **>= 90%** to help identify under and over-utilization.",
+      "mode": "markdown"
+    },
+    {
+      "id": 2,
+      "title": "Untitled Panel",
+      "gridPos": {
+        "x": 1,
+        "y": 0,
+        "w": 1,
+        "h": 4
+      },
+      "type": "text",
+      "content": "## Compare CPU and Memory\nThis scatter plot shows the CPU and memory utilization by host and instance type. Each instance type will use the same color to easily identify resource usage by instance type.\n\nThe Y-axis designates memory and is on a Log scale. This helps to separate clusters of hosts which use low amounts of memory.",
+      "mode": "markdown"
+    },
+    {
+      "id": 3,
+      "title": "EC2 average CPU utilization",
+      "gridPos": {
+        "x": 2,
+        "y": 0,
+        "w": 1,
+        "h": 4
+      },
+      "type": "bargauge",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "basic",
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        }
+      },
+      "targets": [
+        {
+          "expr": "avg_over_time(aws.ec2.cpuutilization{{$aws_account,$availability-zone,$instance-type,$service,$team,$host,$env}} by {{instance-type}})[5m]",
+          "refId": "A0",
+          "instant": false,
+          "legendFormat": ""
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "EC2 max CPU utilization",
+      "gridPos": {
+        "x": 3,
+        "y": 0,
+        "w": 1,
+        "h": 4
+      },
+      "type": "bargauge",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "basic",
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        }
+      },
+      "targets": [
+        {
+          "expr": "max_over_time(aws.ec2.cpuutilization.maximum{{$aws_account,$availability-zone,$instance-type,$service,$team,$host,$env}} by {{instance-type}})[5m]",
+          "refId": "A0",
+          "instant": false,
+          "legendFormat": ""
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Compare CPU and memory utilization grouped by host/instance-type",
+      "gridPos": {
+        "x": 4,
+        "y": 0,
+        "w": 1,
+        "h": 4
+      },
+      "type": "text",
+      "content": "Unsupported Datadog widget type: scatterplot",
+      "mode": "markdown"
+    },
+    {
+      "id": 6,
+      "title": "Untitled Panel",
+      "gridPos": {
+        "x": 5,
+        "y": 0,
+        "w": 3,
+        "h": 4
+      },
+      "type": "text",
+      "content": "## Max CPU utilization by instance type and host - past week:\n\nSometimes it helps to view performance over time. These 2 widgets help to visualize the Max CPU utilization by instance type and host separately over the past week.",
+      "mode": "markdown"
+    },
+    {
+      "id": 7,
+      "title": "Max CPU utilization by instance-type - past week",
+      "gridPos": {
+        "x": 8,
+        "y": 0,
+        "w": 1,
+        "h": 4
+      },
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "options": {
+        "legend": {
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "expr": "max_over_time(aws.ec2.cpuutilization{{$aws_account,$availability-zone,$instance-type,$service,$team,$host,$env}} by {{instance-type}})[5m]",
+          "refId": "A0",
+          "instant": false,
+          "legendFormat": ""
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Max CPU utilization by host - past week",
+      "gridPos": {
+        "x": 9,
+        "y": 0,
+        "w": 1,
+        "h": 4
+      },
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "options": {
+        "legend": {
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "expr": "max_over_time(aws.ec2.cpuutilization{{$aws_account,$availability-zone,$instance-type,$service,$team,$host,$env}} by {{host}})[5m]",
+          "refId": "A0",
+          "instant": false,
+          "legendFormat": ""
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "title": "EC2 max CPU utilization (Orange Low / Green High)",
+      "gridPos": {
+        "x": 10,
+        "y": 0,
+        "w": 3,
+        "h": 4
+      },
+      "type": "table",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "max_over_time(aws.ec2.cpuutilization.maximum{{$aws_account,$availability-zone,$env,$instance-type,$service,$team,$host}} by {{host}})[5m]",
+          "refId": "fill",
+          "instant": false,
+          "legendFormat": ""
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "title": "Untitled Panel",
+      "gridPos": {
+        "x": 13,
+        "y": 0,
+        "w": 1,
+        "h": 4
+      },
+      "type": "text",
+      "content": "## Host count\nThis count section shows the min and max instances for the last day along with a list of how many instances are using each instance type.\n\nThis count section can help identify the amount of elasticity of instances. A high rate of change may be an indication of instances running *hot*. Conversely, no change can be signs of underutilized instances.",
+      "mode": "markdown"
+    },
+    {
+      "id": 11,
+      "title": "Untitled Panel",
+      "gridPos": {
+        "x": 14,
+        "y": 0,
+        "w": 1,
+        "h": 4
+      },
+      "type": "text",
+      "content": "## Network traffic\nCPU and memory are not the only metrics to focus on when reviewing utilization. Here we see the in/out network traffic by instance type.\nBelow is a combination of in/out network traffic. Expand the widget to full screen for a breakdown of each instance type.",
+      "mode": "markdown"
+    },
+    {
+      "id": 12,
+      "title": "AWS EC2 Network max combined in/out (bottom 10)",
+      "gridPos": {
+        "x": 15,
+        "y": 0,
+        "w": 1,
+        "h": 4
+      },
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "options": {
+        "legend": {
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "expr": "top(max_over_time(aws.ec2.network_in.maximum{{$aws_account,$availability-zone,$instance-type,$service,$team,$host,$env}} by {{instance-type}}, 10, 'max', 'asc'), top(max_over_time(aws.ec2.network_out.maximum{{$aws_account,$availability-zone,$instance-type,$service,$team,$host,$env}} by {{instance-type}}, 10, 'max', 'asc'), top(max_over_time(aws.ec2.network_in.maximum{{$aws_account,$availability-zone,$instance-type,$service,$team,$host,$env}} by {{instance-type}}, 10, 'max', 'asc')+top(max_over_time(aws.ec2.network_out.maximum{{$aws_account,$availability-zone,$instance-type,$service,$team,$host,$env}} by {{instance-type}}, 10, 'max', 'asc')))))[5m]",
+          "refId": "A0",
+          "instant": false,
+          "legendFormat": ""
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "title": "Max EC2 instances - past day",
+      "gridPos": {
+        "x": 16,
+        "y": 0,
+        "w": 1,
+        "h": 4
+      },
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "options": {
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum(aws.ec2.host_ok{{$aws_account,$availability-zone,$instance-type,$service,$team,$host,$env}}.rollup(max))[5m]",
+          "refId": "A0",
+          "instant": false,
+          "legendFormat": ""
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "title": "Min EC2 instances - past day",
+      "gridPos": {
+        "x": 17,
+        "y": 0,
+        "w": 1,
+        "h": 4
+      },
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "options": {
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum(aws.ec2.host_ok{{$aws_account,$availability-zone,$instance-type,$service,$team,$host,$env}}.rollup(min))[5m]",
+          "refId": "A0",
+          "instant": false,
+          "legendFormat": ""
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "title": "Network in by instance type (bottom 50)",
+      "gridPos": {
+        "x": 18,
+        "y": 0,
+        "w": 1,
+        "h": 4
+      },
+      "type": "bargauge",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "basic",
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        }
+      },
+      "targets": [
+        {
+          "expr": "avg_over_time(aws.ec2.network_in.maximum{{$aws_account,$availability-zone,$instance-type,$service,$team,$host,$env}} by {{instance-type}})[5m]",
+          "refId": "A0",
+          "instant": false,
+          "legendFormat": ""
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "title": "Network out by instance type (bottom 50)",
+      "gridPos": {
+        "x": 19,
+        "y": 0,
+        "w": 1,
+        "h": 4
+      },
+      "type": "bargauge",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "basic",
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        }
+      },
+      "targets": [
+        {
+          "expr": "avg_over_time(aws.ec2.network_out.maximum{{$aws_account,$availability-zone,$instance-type,$service,$team,$host,$env}} by {{instance-type}})[5m]",
+          "refId": "A0",
+          "instant": false,
+          "legendFormat": ""
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "title": "Max instances by instance type",
+      "gridPos": {
+        "x": 20,
+        "y": 0,
+        "w": 1,
+        "h": 4
+      },
+      "type": "bargauge",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "basic",
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum(aws.ec2.host_ok{{$aws_account,$availability-zone,$instance-type,$service,$team,$host,$env}} by {{instance-type}})[5m]",
+          "refId": "A0",
+          "instant": false,
+          "legendFormat": ""
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "title": "Untitled Panel",
+      "gridPos": {
+        "x": 21,
+        "y": 0,
+        "w": 1,
+        "h": 4
+      },
+      "type": "text",
+      "content": "## Focus on instance-type performance\nThese heat maps will show the CPU utilization of the instance type for the past week. These widgets are meant to be used along with *Template variables*. \n\nUse the *Template variables* above to focus on a specific instance or group instances by another value like service.\n\nA specific instance can also be set by clicking in a widget broken down by instance type and setting *Template variables*.",
+      "mode": "markdown"
+    },
+    {
+      "id": 19,
+      "title": "Untitled Panel",
+      "gridPos": {
+        "x": 22,
+        "y": 0,
+        "w": 1,
+        "h": 4
+      },
+      "type": "text",
+      "content": "## Autoscaling\nThe Autoscaling breakdown helps to identify optimization by scaling groups.\n\n* Does the group have large instances which aren't scaling?\n* Is the group at its host limit with high CPU utilization?\n\nThese are areas for review to determine if the scaling group and its instances are optimized.",
+      "mode": "markdown"
+    },
+    {
+      "id": 20,
+      "title": "$instant-type average CPU utilization - past week",
+      "gridPos": {
+        "x": 23,
+        "y": 0,
+        "w": 1,
+        "h": 4
+      },
+      "type": "heatmap",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "max_over_time(aws.ec2.cpuutilization{{$aws_account,$availability-zone,$instance-type,$service,$team,$host,$env}} by {{instance-type}})[5m]",
+          "refId": "A0",
+          "instant": false,
+          "legendFormat": ""
+        }
+      ]
+    },
+    {
+      "id": 21,
+      "title": "AWS Autoscaling group CPU utilization",
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 1,
+        "h": 4
+      },
+      "type": "text",
+      "content": "Unsupported Datadog widget type: query_table",
+      "mode": "markdown"
+    },
+    {
+      "id": 22,
+      "title": "$instance-type average CPU utilization - past week",
+      "gridPos": {
+        "x": 1,
+        "y": 4,
+        "w": 1,
+        "h": 4
+      },
+      "type": "heatmap",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "max_over_time(aws.ec2.cpuutilization{{$aws_account,$availability-zone,$instance-type,$service,$team,$host,$env}} by {{host}})[5m]",
+          "refId": "A0",
+          "instant": false,
+          "legendFormat": ""
+        }
+      ]
+    },
+    {
+      "id": 23,
+      "title": "Untitled Panel",
+      "gridPos": {
+        "x": 2,
+        "y": 4,
+        "w": 1,
+        "h": 4
+      },
+      "type": "text",
+      "content": "## Focus on host system performance\n\nThese widgets will show host performance for that host or group of hosts for the past day. These widgets are meant to be used along with *Template variables*. \n\nUse the *Template variables* above to focus on a specific host or group hosts by another value like service.\n\nA specific host can also be set by clicking in the **Host list breakdown table** and setting *Template variables*.",
+      "mode": "markdown"
+    },
+    {
+      "id": 24,
+      "title": "Untitled Panel",
+      "gridPos": {
+        "x": 3,
+        "y": 4,
+        "w": 1,
+        "h": 4
+      },
+      "type": "text",
+      "content": "## Host list breakdown table\nThe host lit breakdown table shows a list of the bottom 100 hosts based on max CPU utilization. Additional performance metrics are included as well. \n\nClick on a specific host and choose *Template variables* to filter the dashboard to a specific host.",
+      "mode": "markdown"
+    },
+    {
+      "id": 25,
+      "title": "System load - past day - $instance-type",
+      "gridPos": {
+        "x": 4,
+        "y": 4,
+        "w": 1,
+        "h": 4
+      },
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "options": {
+        "legend": {
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "expr": "max_over_time(system.load.1{{cloud_provider:aws,$aws_account,$availability-zone,$instance-type,$service,$team,$host,$env}})[5m]",
+          "refId": "A0",
+          "instant": false,
+          "legendFormat": ""
+        },
+        {
+          "expr": "max_over_time(system.load.5{{cloud_provider:aws,$aws_account,$availability-zone,$instance-type,$service,$team,$host,$env}})[5m]",
+          "refId": "A1",
+          "instant": false,
+          "legendFormat": ""
+        },
+        {
+          "expr": "max_over_time(system.load.15{{cloud_provider:aws,$aws_account,$availability-zone,$instance-type,$service,$team,$host,$env}})[5m]",
+          "refId": "A2",
+          "instant": false,
+          "legendFormat": ""
+        }
+      ]
+    },
+    {
+      "id": 26,
+      "title": "CPU usage (%) - past day - $instance-type",
+      "gridPos": {
+        "x": 5,
+        "y": 4,
+        "w": 1,
+        "h": 4
+      },
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "options": {
+        "legend": {
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "expr": "avg_over_time(system.cpu.idle{{cloud_provider:aws,$aws_account,$availability-zone,$instance-type,$service,$team,$host,$env}})[5m]",
+          "refId": "A0",
+          "instant": false,
+          "legendFormat": ""
+        }
+      ]
+    },
+    {
+      "id": 27,
+      "title": "Host list breakdown table",
+      "gridPos": {
+        "x": 6,
+        "y": 4,
+        "w": 1,
+        "h": 4
+      },
+      "type": "text",
+      "content": "Unsupported Datadog widget type: query_table",
+      "mode": "markdown"
+    },
+    {
+      "id": 28,
+      "title": "Network traffic (per sec) - past day - $instance-type",
+      "gridPos": {
+        "x": 7,
+        "y": 4,
+        "w": 1,
+        "h": 4
+      },
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "options": {
+        "legend": {
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum(system.net.bytes_rcvd{{cloud_provider:aws,$aws_account,$availability-zone,$instance-type,$service,$team,$host,$env}})[5m]",
+          "refId": "A0",
+          "instant": false,
+          "legendFormat": ""
+        },
+        {
+          "expr": "sum(system.net.bytes_sent{{cloud_provider:aws,$aws_account,$availability-zone,$instance-type,$service,$team,$host,$env}})[5m]",
+          "refId": "A1",
+          "instant": false,
+          "legendFormat": ""
+        }
+      ]
+    },
+    {
+      "id": 29,
+      "title": "System memory - past day - $instance-type",
+      "gridPos": {
+        "x": 8,
+        "y": 4,
+        "w": 1,
+        "h": 4
+      },
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "options": {
+        "legend": {
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum(system.mem.usable{{cloud_provider:aws,$aws_account,$availability-zone,$instance-type,$service,$team,$host,$env}})[5m]",
+          "refId": "A0",
+          "instant": false,
+          "legendFormat": ""
+        }
+      ]
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "aws_account",
+        "type": "custom",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "current": {
+          "value": "*",
+          "text": "*"
+        },
+        "options": [],
+        "query": "aws_account",
+        "skipUrlSync": false,
+        "hide": 0
+      },
+      {
+        "name": "availability-zone",
+        "type": "custom",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "current": {
+          "value": "*",
+          "text": "*"
+        },
+        "options": [],
+        "query": "availability-zone",
+        "skipUrlSync": false,
+        "hide": 0
+      },
+      {
+        "name": "env",
+        "type": "custom",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "current": {
+          "value": "*",
+          "text": "*"
+        },
+        "options": [],
+        "query": "env",
+        "skipUrlSync": false,
+        "hide": 0
+      },
+      {
+        "name": "instance-type",
+        "type": "custom",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "current": {
+          "value": "*",
+          "text": "*"
+        },
+        "options": [],
+        "query": "instance-type",
+        "skipUrlSync": false,
+        "hide": 0
+      },
+      {
+        "name": "service",
+        "type": "custom",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "current": {
+          "value": "*",
+          "text": "*"
+        },
+        "options": [],
+        "query": "service",
+        "skipUrlSync": false,
+        "hide": 0
+      },
+      {
+        "name": "team",
+        "type": "custom",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "current": {
+          "value": "*",
+          "text": "*"
+        },
+        "options": [],
+        "query": "team",
+        "skipUrlSync": false,
+        "hide": 0
+      },
+      {
+        "name": "host",
+        "type": "custom",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "current": {
+          "value": "*",
+          "text": "*"
+        },
+        "options": [],
+        "query": "host",
+        "skipUrlSync": false,
+        "hide": 0
+      }
+    ]
+  },
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  }
+}

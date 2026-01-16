@@ -75,6 +75,21 @@ Additional options for dashboard analysis:
 - `--time-from`: Dashboard time range from (e.g., now-6h)
 - `--time-to`: Dashboard time range to (e.g., now)
 
+## Examples
+
+The `examples/` directory contains sample dashboards and demonstrations of the conversion process:
+
+- `examples/k8s_dashboard.json` - Sample Kubernetes dashboard in Datadog format
+- `examples/converted_k8s_dashboard.json` - Converted to Grafana format
+- `examples/demo.sh` - Interactive demonstration script
+- `examples/kubernetes_example.md` - Detailed example documentation
+
+To run the example:
+```
+cd examples
+./demo.sh
+```
+
 ## Development
 
 ### Setting up the environment
@@ -121,5 +136,5 @@ The test suite validates:
 
 
 ## License
- 
+
    MIT License

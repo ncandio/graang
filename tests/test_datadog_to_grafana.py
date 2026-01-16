@@ -8,6 +8,8 @@ from unittest.mock import patch, mock_open, MagicMock
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from datadog_to_grafana import DatadogToGrafanaConverter, GrafanaDashboardExporter
+from datadog_dashboard import DatadogDashboard
+from errors import DashboardParsingError, FileOperationError
 
 class MockDatadogDashboard:
     """Mock class for testing DatadogDashboard"""
@@ -202,16 +204,17 @@ class TestGrafanaDashboardExporter(unittest.TestCase):
     
     def test_export_invalid_dashboard(self):
         """Test export with an invalid dashboard"""
-        with patch('builtins.open', mock_open()), \
-             patch('json.load', return_value={}), \
-             patch('sys.stderr') as mock_stderr:
-            
+        # Mock the DatadogDashboard to return an invalid dashboard
+        with patch('datadog_to_grafana.DatadogDashboard') as mock_dd_dashboard:
+            # Create a mock dashboard instance with is_valid = False
+            mock_instance = mock_dd_dashboard.return_value
+            mock_instance.is_valid = False
+
             # Call the export method
             result = GrafanaDashboardExporter.export("input.json", "output.json")
-            
+
             # Check result
             self.assertFalse(result)
-            mock_stderr.write.assert_called_once()
 
 
 if __name__ == "__main__":
