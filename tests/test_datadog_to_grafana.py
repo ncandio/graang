@@ -8,6 +8,7 @@ from unittest.mock import patch, mock_open, MagicMock
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from datadog_to_grafana import DatadogToGrafanaConverter, GrafanaDashboardExporter
+from datadog_dashboard import DatadogDashboard
 
 class MockDatadogDashboard:
     """Mock class for testing DatadogDashboard"""
