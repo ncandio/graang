@@ -158,13 +158,16 @@ class DatadogToGrafanaConverter:
         widget_type = definition.get('type', 'unknown')
         
         # Set up the base panel structure
+        # Get title from the widget definition if available
+        title = definition.get('title', widget.get('title', 'Untitled Panel'))
+
         panel = {
             "id": self.panel_id,
-            "title": widget.get('title', 'Untitled Panel'),
+            "title": title,
             "gridPos": self._get_next_grid_position(widget),
         }
         self.panel_id += 1
-        
+
         # Handle different widget types
         if widget_type == 'timeseries':
             self._convert_timeseries(definition, panel)
