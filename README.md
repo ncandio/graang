@@ -1,6 +1,6 @@
 <img src="images/graang.jpg" alt="graange logo" width="200" height="200">
 
-# graang -  Observability utilities collection - Collection of utilities in different languages in order to facilitate migrations from  datadog   grafana dashboard
+# graang - Observability utilities collection - Utilities for converting Datadog dashboards schemas to Grafana dashboards schemas. 
 
 Graang  - Collection of utilities in different languages in order to facilitate migrations from  datadog   grafana dashboard and other different formats 
 
