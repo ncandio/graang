@@ -5,6 +5,8 @@ import uuid
 import copy
 import re
 
+from errors import ConversionError, FileOperationError
+
 class DatadogToGrafanaConverter:
     def __init__(self, datadog_dashboard):
         """
@@ -79,9 +81,12 @@ class DatadogToGrafanaConverter:
     def save_to_file(self, output_path):
         """
         Save the Grafana dashboard to a file
-        
+
         Args:
             output_path: Path to save the Grafana dashboard JSON
+
+        Raises:
+            FileOperationError: If there's an error saving the file
         """
         try:
             with open(output_path, 'w') as f:
@@ -89,8 +94,7 @@ class DatadogToGrafanaConverter:
             print(f"Grafana dashboard saved to {output_path}")
             return True
         except Exception as e:
-            sys.stderr.write(f"Error saving Grafana dashboard: {str(e)}\n")
-            return False
+            raise FileOperationError(f"Error saving Grafana dashboard: {str(e)}")
     
     def _convert_template_variables(self):
         """Convert Datadog template variables to Grafana format"""
@@ -460,10 +464,14 @@ class GrafanaDashboardExporter:
             grafana_dashboard = converter.convert()
 
             # Save to file
-            return converter.save_to_file(output_path)
+            converter.save_to_file(output_path)
+            return True
 
-        except Exception as e:
+        except (FileOperationError, ConversionError) as e:
             sys.stderr.write(f"Error exporting Grafana dashboard: {str(e)}\n")
+            return False
+        except Exception as e:
+            sys.stderr.write(f"Unexpected error exporting Grafana dashboard: {str(e)}\n")
             return False
 
 

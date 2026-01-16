@@ -7,6 +7,7 @@ from collections import defaultdict
 import textwrap
 from operator import itemgetter
 from datadog_dashboard import DatadogDashboard
+from errors import DashboardParsingError
 
 def main():
     # Parse the arguments
@@ -21,15 +22,23 @@ def main():
     parser.add_argument('--grid-pos', help='Default panel grid position (x,y,w,h)', default='0,0,12,8')
     parser.add_argument('-c','--convert', action='store_true', help='Convert the dashboard to Grafana format and generate a report')
     args = parser.parse_args()
-    
-    dd_dashboard = DatadogDashboard(args.dashboard)
+
+    try:
+        dd_dashboard = DatadogDashboard(args.dashboard)
+    except DashboardParsingError as e:
+        sys.stderr.write(f"Error: {str(e)}\n")
+        sys.exit(1)
 
     if args.convert:
         grafana_dashboard = convert_to_grafana(dd_dashboard, args)
         if args.output:
-            with open(args.output, 'w') as f:
-                json.dump(grafana_dashboard, f, indent=4)
-            print(f"Grafana dashboard converted and saved to {args.output}")
+            try:
+                with open(args.output, 'w') as f:
+                    json.dump(grafana_dashboard, f, indent=4)
+                print(f"Grafana dashboard converted and saved to {args.output}")
+            except Exception as e:
+                sys.stderr.write(f"Error saving output file: {str(e)}\n")
+                sys.exit(1)
         else:
             print(json.dumps(grafana_dashboard, indent=4))
     else:
@@ -38,6 +47,16 @@ def main():
 def convert_to_grafana(dd_dashboard, args):
     """
     Convert Datadog dashboard to Grafana format
+
+    Args:
+        dd_dashboard: DatadogDashboard instance
+        args: Command line arguments
+
+    Returns:
+        dict: Grafana dashboard configuration
+
+    Raises:
+        ValueError: If there's an error with grid position format
     """
     grafana_dashboard = {
         "id": None,
@@ -66,8 +85,6 @@ def convert_to_grafana(dd_dashboard, args):
         }
     except ValueError as e:
         raise ValueError(f"Invalid grid position format: '{args.grid_pos}'. Please provide 4 comma-separated integers (x, y, w, h). Original error: {e}")
-    except Exception as e:
-        print(f"Error parsing grid position: {type(e).__name__} - {e}")
 
     # Mapping of Datadog widget types to Grafana panel types
     # This dictionary maps Datadog widget types (keys) to their corresponding Grafana panel types (values).
@@ -96,7 +113,7 @@ def convert_to_grafana(dd_dashboard, args):
                 widget_type = widget['definition'].get('type', 'unknown')
                 if widget_type not in widget_type_to_panel_type:
                     print(f"Warning: Unknown widget type '{widget_type}' encountered. Defaulting to 'graph'.")
-                
+
                 panel = {
                     "id": panel_id,
                     "type": widget_type_to_panel_type.get(widget_type, 'graph'),  # Map widget type to panel type
@@ -105,7 +122,7 @@ def convert_to_grafana(dd_dashboard, args):
                     "targets": []
                 }
                 panel_id += 1
-                
+
                 # Extract and convert queries
                 if 'requests' in definition:
                     if isinstance(definition['requests'], list):
@@ -125,7 +142,7 @@ def convert_to_grafana(dd_dashboard, args):
                                 grafana_target = convert_request_to_target(request_value, args.datasource)
                                 if grafana_target:
                                     panel['targets'].append(grafana_target)
-                
+
                 grafana_dashboard['panels'].append(panel)
 
     return grafana_dashboard

@@ -4,6 +4,8 @@ from collections import defaultdict
 import textwrap
 from operator import itemgetter
 
+from errors import DashboardParsingError
+
 
 class DatadogDashboard:
     def __init__(self, dashboard_path):
@@ -27,11 +29,11 @@ class DatadogDashboard:
                 self.data = json.load(f)
                 self.parse_dashboard()
         except FileNotFoundError:
-            sys.stderr.write(f"Error: Dashboard file '{self.dashboard_path}' not found. Please check the file path or ensure the file exists.\n")
+            raise DashboardParsingError(f"Dashboard file '{self.dashboard_path}' not found. Please check the file path or ensure the file exists.")
         except json.JSONDecodeError:
-            sys.stderr.write(f"Error: '{self.dashboard_path}' contains invalid JSON. Please validate the file format.\n")
+            raise DashboardParsingError(f"'{self.dashboard_path}' contains invalid JSON. Please validate the file format.")
         except Exception as e:
-            sys.stderr.write(f"Error reading dashboard: {str(e)}\n")
+            raise DashboardParsingError(f"Error reading dashboard: {str(e)}")
 
     def parse_dashboard(self):
         """Parse dashboard data and extract relevant information"""
