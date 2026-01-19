@@ -35,11 +35,13 @@ class TestDatadogToGrafanaConverter(unittest.TestCase):
         self.assertEqual(self.converter.datadog, self.mock_dashboard)
         self.assertEqual(self.converter.grafana["title"], "Test Dashboard")
         self.assertIn("converted-from-datadog", self.converter.grafana["tags"])
-        
+
         # Check panel tracking
         self.assertEqual(self.converter.panel_id, 1)
-        self.assertEqual(self.converter.grid_pos["x"], 0)
-        self.assertEqual(self.converter.grid_pos["y"], 0)
+        # Check grid layout calculator exists
+        self.assertIsNotNone(self.converter.grid_layout)
+        self.assertEqual(self.converter.grid_layout.x, 0)
+        self.assertEqual(self.converter.grid_layout.y, 0)
     
     def test_empty_conversion(self):
         """Test conversion with an empty dashboard"""
