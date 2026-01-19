@@ -9,6 +9,7 @@ from operator import itemgetter
 from typing import Dict, List, Any, Optional, Union, Tuple
 from datadog_dashboard import DatadogDashboard
 from errors import DashboardParsingError
+from utils import convert_requests_to_targets, build_grafana_target, GridLayoutCalculator
 
 def main() -> None:
     # Parse the arguments
@@ -65,27 +66,34 @@ def convert_to_grafana(dd_dashboard: Any, args: Any) -> Dict[str, Any]:  # Using
         "title": dd_dashboard.title,
         "tags": [],
         "timezone": "browser",
-        "schemaVersion": 16,
-        "version": 0,
+        "schemaVersion": 36,
+        "version": 1,
+        "refresh": "5s",
         "time": {
             "from": args.time_from,
             "to": args.time_to
         },
-        "panels": []
-    }
-    # Parse grid position from args
-    try:
-        grid_pos_values = list(map(int, args.grid_pos.split(',')))
-        if len(grid_pos_values) != 4:
-            raise ValueError("Grid position must have exactly 4 values (x, y, w, h).")
-        default_grid_pos = {
-            "x": grid_pos_values[0],
-            "y": grid_pos_values[1],
-            "w": grid_pos_values[2],
-            "h": grid_pos_values[3]
+        "panels": [],
+        "templating": {
+            "list": []
+        },
+        "annotations": {
+            "list": [{
+                "builtIn": 1,
+                "datasource": {
+                    "type": "grafana",
+                    "uid": "-- Grafana --"
+                },
+                "enable": True,
+                "hide": True,
+                "iconColor": "rgba(0, 211, 255, 1)",
+                "name": "Annotations & Alerts",
+                "type": "dashboard"
+            }]
         }
-    except ValueError as e:
-        raise ValueError(f"Invalid grid position format: '{args.grid_pos}'. Please provide 4 comma-separated integers (x, y, w, h). Original error: {e}")
+    }
+    # Initialize grid layout calculator
+    grid_layout = GridLayoutCalculator()
 
     # Mapping of Datadog widget types to Grafana panel types
     # This dictionary maps Datadog widget types (keys) to their corresponding Grafana panel types (values).
@@ -103,6 +111,36 @@ def convert_to_grafana(dd_dashboard: Any, args: Any) -> Dict[str, Any]:  # Using
         "group": "row"  # Example: group widgets could map to rows
     }
 
+    # Convert template variables
+    for var in dd_dashboard.template_variables:
+        grafana_var = {
+            "name": var.get("name", ""),
+            "type": "custom",
+            "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+            },
+            "current": {},
+            "options": [],
+            "query": "",
+            "skipUrlSync": False,
+            "hide": 0
+        }
+
+        # Handle different variable types
+        if "prefix" in var:
+            grafana_var["query"] = var.get("prefix", "")
+
+        # Add values if available
+        if "default" in var:
+            grafana_var["current"] = {"value": var["default"], "text": var["default"]}
+
+        if "values" in var:
+            for value in var["values"]:
+                grafana_var["options"].append({"text": value, "value": value})
+
+        grafana_dashboard["templating"]["list"].append(grafana_var)
+
     # Convert widgets to panels
     if not dd_dashboard.widgets:
         print("Warning: No widgets found in the Datadog dashboard. Creating an empty Grafana dashboard.")
@@ -115,63 +153,27 @@ def convert_to_grafana(dd_dashboard: Any, args: Any) -> Dict[str, Any]:  # Using
                 if widget_type not in widget_type_to_panel_type:
                     print(f"Warning: Unknown widget type '{widget_type}' encountered. Defaulting to 'graph'.")
 
+                # Calculate grid position dynamically
+                grid_pos = grid_layout.get_next_grid_position(widget, panel_id)
+
                 panel = {
                     "id": panel_id,
                     "type": widget_type_to_panel_type.get(widget_type, 'graph'),  # Map widget type to panel type
                     "title": definition.get('title', 'No Title'),
-                    "gridPos": default_grid_pos,
+                    "gridPos": grid_pos,
                     "targets": []
                 }
                 panel_id += 1
 
                 # Extract and convert queries
                 if 'requests' in definition:
-                    if isinstance(definition['requests'], list):
-                        for request in definition['requests']:
-                            grafana_target = convert_request_to_target(request, args.datasource)
-                            if grafana_target:
-                                panel['targets'].append(grafana_target)
-                    elif isinstance(definition['requests'], dict):
-                        for request_value in definition['requests'].values():
-                            if isinstance(request_value, list):
-                                for r in request_value:
-                                    if isinstance(r, dict):
-                                        grafana_target = convert_request_to_target(r, args.datasource)
-                                        if grafana_target:
-                                            panel['targets'].append(grafana_target)
-                            elif isinstance(request_value, dict):
-                                grafana_target = convert_request_to_target(request_value, args.datasource)
-                                if grafana_target:
-                                    panel['targets'].append(grafana_target)
+                    grafana_targets = convert_requests_to_targets(definition['requests'], args.datasource)
+                    panel['targets'].extend(grafana_targets)
 
                 grafana_dashboard['panels'].append(panel)
 
     return grafana_dashboard
 
-def convert_request_to_target(request: Dict[str, Any], datasource: str) -> Optional[Union[Dict[str, Any], List[Dict[str, Any]]]]:
-    """
-    Convert a Datadog request to a Grafana target.
-    """
-    if 'q' in request:
-        return {
-            "datasource": datasource,
-            "expr": request['q'],
-            "refId": request.get('ref_id', 'A')  # You might need a more sophisticated way to generate refIds
-        }
-    elif 'queries' in request and isinstance(request['queries'], list):
-        # Handle the case where the query is in the 'queries' array
-        # This might require adjustments based on the exact structure of your Datadog queries
-        targets: List[Dict[str, Any]] = []
-        for i, query_obj in enumerate(request['queries']):
-            if 'query' in query_obj:
-                target = {
-                    "datasource": datasource,
-                    "expr": query_obj['query'],
-                    "refId": query_obj.get('name', f'Q{i}')  # Generate a refId
-                }
-                targets.append(target)
-        return targets
-    return None
 
 if __name__ == "__main__":
     main()

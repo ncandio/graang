@@ -3,10 +3,10 @@ import sys
 from collections import defaultdict
 import uuid
 import copy
-import re
 from typing import Dict, List, Any, Optional, Union
 
 from errors import ConversionError, FileOperationError
+from utils import convert_requests_to_targets, build_grafana_target, convert_datadog_query_to_prometheus, GridLayoutCalculator
 
 class DatadogToGrafanaConverter:
     def __init__(self, datadog_dashboard: Any) -> None:  # Using Any for now since we'll import later
@@ -52,12 +52,7 @@ class DatadogToGrafanaConverter:
 
         # Keep track of panel positioning
         self.panel_id: int = 1
-        self.grid_pos: Dict[str, Union[int, float]] = {
-            "x": 0,
-            "y": 0,
-            "max_x": 24,  # Grafana uses a 24-unit wide grid
-            "current_row_height": 0
-        }
+        self.grid_layout = GridLayoutCalculator()
 
     def convert(self) -> Dict[str, Any]:
         """
@@ -196,39 +191,7 @@ class DatadogToGrafanaConverter:
 
     def _get_next_grid_position(self, widget: Dict[str, Any]) -> Dict[str, int]:
         """Calculate the next grid position for a panel"""
-        # Default size if not specified
-        width = 12
-        height = 8
-
-        # Try to extract size information from the widget
-        if 'layout' in widget and 'width' in widget['layout'] and 'height' in widget['layout']:
-            # Datadog uses percentages, Grafana uses a 24-unit grid
-            width_percent = widget['layout'].get('width', 50)
-            width = max(1, min(24, round((width_percent / 100) * 24)))
-
-            # Height is in units, typically 4-12 range in Grafana
-            height_percent = widget['layout'].get('height', 25)
-            height = max(4, min(36, round((height_percent / 100) * 24)))
-
-        # Check if we need to move to a new row
-        if self.grid_pos["x"] + width > self.grid_pos["max_x"]:
-            self.grid_pos["x"] = 0
-            self.grid_pos["y"] += self.grid_pos["current_row_height"]
-            self.grid_pos["current_row_height"] = 0
-
-        # Calculate position
-        grid_pos = {
-            "x": self.grid_pos["x"],
-            "y": self.grid_pos["y"],
-            "w": width,
-            "h": height
-        }
-
-        # Update tracking variables
-        self.grid_pos["x"] += width
-        self.grid_pos["current_row_height"] = max(self.grid_pos["current_row_height"], height)
-
-        return grid_pos
+        return self.grid_layout.get_next_grid_position(widget, self.panel_id)
 
     def _convert_timeseries(self, definition: Dict[str, Any], panel: Dict[str, Any]) -> None:
         """Convert a Datadog timeseries widget to a Grafana timeseries panel"""
@@ -345,68 +308,22 @@ class DatadogToGrafanaConverter:
             ]
         })
 
-    def _convert_requests_to_targets(self, requests: Union[List[Dict[str, Any]], Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def _convert_requests_to_targets(self, requests: Union[List[Dict[str, Any]], Dict[str, Any]], datasource: str = "prometheus") -> List[Dict[str, Any]]:
         """
         Convert Datadog query requests to Grafana targets
 
         Args:
             requests: List of Datadog query requests
+            datasource: Datasource to use for targets
 
         Returns:
             list: Grafana target configurations
         """
-        targets: List[Dict[str, Any]] = []
+        return convert_requests_to_targets(requests, datasource)
 
-        if isinstance(requests, dict):
-            # Handle dictionary format
-            for key, request_items in requests.items():
-                if isinstance(request_items, list):
-                    for i, request in enumerate(request_items):
-                        target = self._build_target(request, f"{key}_{i}")
-                        if target:
-                            targets.append(target)
-                elif isinstance(request_items, dict):
-                    target = self._build_target(request_items, key)
-                    if target:
-                        targets.append(target)
-        elif isinstance(requests, list):
-            # Handle list format
-            for i, request in enumerate(requests):
-                target = self._build_target(request, f"A{i}")
-                if target:
-                    targets.append(target)
-
-        return targets
-
-    def _build_target(self, request: Dict[str, Any], ref_id: str = "A") -> Optional[Dict[str, Any]]:
+    def _build_target(self, request: Dict[str, Any], ref_id: str = "A", datasource: str = "prometheus") -> Optional[Dict[str, Any]]:
         """Build a Grafana target from a Datadog request"""
-        if not request:
-            return None
-
-        # Extract query from different possible formats
-        query = ""
-        if 'q' in request:
-            query = request['q']
-        elif 'query' in request:
-            query = request['query']
-        elif 'queries' in request and isinstance(request['queries'], list) and len(request['queries']) > 0:
-            query_obj = request['queries'][0]
-            if 'query' in query_obj:
-                query = query_obj['query']
-
-        if not query:
-            return None
-
-        # Convert Datadog query to Prometheus format
-        # This is a simplified conversion and might need adjustments
-        prometheus_query = self._convert_datadog_query_to_prometheus(query)
-
-        return {
-            "expr": prometheus_query,
-            "refId": ref_id,
-            "instant": False,
-            "legendFormat": request.get('display_name', '')
-        }
+        return build_grafana_target(request, datasource, ref_id)
 
     def _convert_datadog_query_to_prometheus(self, query: str) -> str:
         """
@@ -414,27 +331,7 @@ class DatadogToGrafanaConverter:
 
         This is a simplified conversion - complex queries would need more detailed mapping
         """
-        # Basic replacements
-        # Replace common Datadog functions with Prometheus equivalents
-        query = re.sub(r'avg:', 'avg_over_time(', query)
-        query = re.sub(r'sum:', 'sum(', query)
-        query = re.sub(r'min:', 'min_over_time(', query)
-        query = re.sub(r'max:', 'max_over_time(', query)
-
-        # Replace tag filters
-        query = re.sub(r'\{([^}]+)\}', r'{{\1}}', query)
-
-        # Add closing parentheses if needed
-        open_parens = query.count('(')
-        close_parens = query.count(')')
-        if open_parens > close_parens:
-            query += ')' * (open_parens - close_parens)
-
-        # Add a time range if it doesn't have one
-        if not re.search(r'\[\w+\]', query):
-            query += '[5m]'
-
-        return query
+        return convert_datadog_query_to_prometheus(query)
 
 
 from datadog_dashboard import DatadogDashboard

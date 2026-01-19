@@ -51,6 +51,51 @@ Note: This software is currently in alpha stage. It was originally developed at 
 - Prepare for dashboard migrations between monitoring systems
 - Document dashboard structure for compliance or knowledge transfer
 
+## Quick Start: Convert a Kubernetes Dashboard
+
+Here's a quick example of how to convert a Kubernetes dashboard from Datadog format to Grafana format:
+
+```
+# Example Kubernetes dashboard in Datadog format
+{
+  "title": "Kubernetes Cluster Overview",
+  "description": "Basic k8s infra dashboard",
+  "widgets": [
+    {
+      "definition": {
+        "type": "timeseries",
+        "title": "CPU Usage by Node",
+        "requests": [
+          {
+            "q": "avg:kubernetes.cpu.usage.total{$kube_cluster,$namespace} by {kube_node}",
+            "display_type": "line"
+          }
+        ]
+      }
+    }
+  ]
+}
+```
+
+To convert this dashboard to Grafana format:
+
+1. Save the Datadog dashboard to a file (e.g., `k8s_dashboard.json`)
+2. Run the conversion command:
+   ```
+   python datadog_to_grafana.py k8s_dashboard.json grafana_k8s_dashboard.json
+   ```
+3. The converted dashboard will be saved as `grafana_k8s_dashboard.json`
+4. Import the converted dashboard into Grafana
+
+Example conversion result:
+```
+# The converted dashboard will have Grafana-compatible format with:
+# - Panel titles preserved (e.g., "CPU Usage by Node")
+# - Widget types mapped (timeseries → timeseries, query_value → stat)
+# - Template variables converted
+# - Prometheus-compatible queries
+```
+
 ## Usage
 
 ### Dashboard Conversion (datadog_to_grafana.py)
