@@ -127,6 +127,19 @@ class FileOperationError(GraangError):
     """Raised when there's an error with file operations."""
 
     @staticmethod
+    def file_not_found(file_path: str) -> "FileOperationError":
+        """Create error for missing file."""
+        return FileOperationError(
+            f"File not found: '{file_path}'",
+            suggestions=[
+                "Check if the file path is correct",
+                "Verify the file exists in the specified location",
+                "Use an absolute path instead of a relative path",
+                "Check file permissions (readable by current user)"
+            ]
+        )
+
+    @staticmethod
     def cannot_write(file_path: str, reason: str) -> "FileOperationError":
         """Create error for file write failure."""
         return FileOperationError(

@@ -5,7 +5,11 @@ import textwrap
 from operator import itemgetter
 from typing import Dict, List, Any, Optional, Union
 
-from errors import DashboardParsingError
+from errors import DashboardParsingError, FileOperationError
+from validation import validate_dashboard_file, InputSanitizer
+from logging_config import get_logger
+
+logger = get_logger(__name__)
 
 
 class DatadogDashboard:
@@ -26,19 +30,18 @@ class DatadogDashboard:
         self.template_variables: List[Dict[str, Any]] = []
 
         try:
-            with open(self.dashboard_path) as f:
-                self.data = json.load(f)
-                self.validate_dashboard_structure()
-                self.parse_dashboard()
-        except FileNotFoundError:
-            raise DashboardParsingError.file_not_found(self.dashboard_path)
-        except json.JSONDecodeError as e:
-            raise DashboardParsingError.invalid_json(self.dashboard_path, str(e))
-        except DashboardParsingError:
+            # Use validation module for secure file loading
+            validated_path, self.data = validate_dashboard_file(dashboard_path)
+            self.dashboard_path = str(validated_path)
+            self.validate_dashboard_structure()
+            self.parse_dashboard()
+        except (FileOperationError, DashboardParsingError):
             # Re-raise our custom errors without wrapping
             raise
         except Exception as e:
-            raise DashboardParsingError(f"Error reading dashboard: {str(e)}")
+            # Sanitize error message to prevent injection
+            safe_error = InputSanitizer.sanitize_for_display(str(e))
+            raise DashboardParsingError(f"Error reading dashboard: {safe_error}")
 
     def validate_dashboard_structure(self) -> bool:
         """Validate the basic structure of the dashboard JSON"""
@@ -46,7 +49,7 @@ class DatadogDashboard:
             raise DashboardParsingError("Dashboard data is not a valid JSON object")
 
         if 'title' not in self.data:
-            print("Warning: Dashboard has no title")
+            logger.warning("Dashboard has no title")
 
         # Check if it has the required sections
         if 'widgets' not in self.data and 'graphs' not in self.data:
@@ -146,7 +149,7 @@ class DatadogDashboard:
                         source = metric_part.split('.')[0]
                         self.metric_sources[source] += 1
         except ValueError as e:
-            print(f"Warning: Failed to analyze query due to a value error. Query: '{query}', Error: {type(e).__name__}: {e}")
+            logger.warning(f"Failed to analyze query due to a value error. Query: '{query}', Error: {type(e).__name__}: {e}")
 
     def print_report(self) -> None:
         """
@@ -160,7 +163,7 @@ class DatadogDashboard:
         - Hierarchical structure of widgets with nested details.
         """
         if not self.is_valid:
-            print("Cannot generate report: Invalid dashboard")
+            logger.error("Cannot generate report: Invalid dashboard")
             return
 
         header = f"DASHBOARD ANALYSIS REPORT"

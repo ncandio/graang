@@ -7,6 +7,10 @@ from typing import Dict, List, Any, Optional, Union
 
 from errors import ConversionError, FileOperationError
 from utils import convert_requests_to_targets, build_grafana_target, convert_datadog_query_to_prometheus, GridLayoutCalculator
+from validation import PathValidator, InputSanitizer
+from logging_config import get_logger
+
+logger = get_logger(__name__)
 
 class DatadogToGrafanaConverter:
     def __init__(self, datadog_dashboard: Any) -> None:  # Using Any for now since we'll import later
@@ -85,16 +89,27 @@ class DatadogToGrafanaConverter:
             FileOperationError: If there's an error saving the file
         """
         try:
-            with open(output_path, 'w') as f:
+            # Validate output path for security
+            validated_path = PathValidator.validate_output_path(output_path)
+
+            with open(validated_path, 'w', encoding='utf-8') as f:
                 json.dump(self.grafana, f, indent=2)
-            print(f"Grafana dashboard saved to {output_path}")
+            logger.info(f"Grafana dashboard saved to {validated_path}")
             return True
+        except FileOperationError:
+            # Re-raise validation errors
+            raise
         except PermissionError as e:
-            raise FileOperationError.cannot_write(output_path, "Permission denied")
+            safe_path = InputSanitizer.sanitize_for_display(output_path)
+            raise FileOperationError.cannot_write(safe_path, "Permission denied")
         except IOError as e:
-            raise FileOperationError.cannot_write(output_path, str(e))
+            safe_path = InputSanitizer.sanitize_for_display(output_path)
+            safe_error = InputSanitizer.sanitize_for_display(str(e))
+            raise FileOperationError.cannot_write(safe_path, safe_error)
         except Exception as e:
-            raise FileOperationError.cannot_write(output_path, f"Unexpected error: {str(e)}")
+            safe_path = InputSanitizer.sanitize_for_display(output_path)
+            safe_error = InputSanitizer.sanitize_for_display(str(e))
+            raise FileOperationError.cannot_write(safe_path, f"Unexpected error: {safe_error}")
 
     def _convert_template_variables(self) -> None:
         """Convert Datadog template variables to Grafana format"""

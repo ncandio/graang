@@ -1,1 +1,3 @@
-pytest>=7.0.0
+# Core runtime dependencies
+# Currently, graang has no external runtime dependencies
+# All functionality uses Python standard library

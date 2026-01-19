@@ -169,3 +169,8 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# Converted dashboard outputs
+converted_*.json
+*_grafana.json
+test_output*.json

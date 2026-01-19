@@ -10,6 +10,9 @@ from typing import Dict, List, Any, Optional, Union, Tuple
 from datadog_dashboard import DatadogDashboard
 from errors import DashboardParsingError
 from utils import convert_requests_to_targets, build_grafana_target, GridLayoutCalculator
+from logging_config import get_logger
+
+logger = get_logger(__name__)
 
 def main() -> None:
     # Parse the arguments
@@ -37,7 +40,7 @@ def main() -> None:
             try:
                 with open(args.output, 'w') as f:
                     json.dump(grafana_dashboard, f, indent=4)
-                print(f"Grafana dashboard converted and saved to {args.output}")
+                logger.info(f"Grafana dashboard converted and saved to {args.output}")
             except Exception as e:
                 sys.stderr.write(f"Error saving output file: {str(e)}\n")
                 sys.exit(1)
@@ -143,7 +146,7 @@ def convert_to_grafana(dd_dashboard: Any, args: Any) -> Dict[str, Any]:  # Using
 
     # Convert widgets to panels
     if not dd_dashboard.widgets:
-        print("Warning: No widgets found in the Datadog dashboard. Creating an empty Grafana dashboard.")
+        logger.warning("No widgets found in the Datadog dashboard. Creating an empty Grafana dashboard.")
     else:
         panel_id: int = 1
         for widget in dd_dashboard.widgets:
@@ -151,7 +154,7 @@ def convert_to_grafana(dd_dashboard: Any, args: Any) -> Dict[str, Any]:  # Using
                 definition = widget['definition']
                 widget_type = widget['definition'].get('type', 'unknown')
                 if widget_type not in widget_type_to_panel_type:
-                    print(f"Warning: Unknown widget type '{widget_type}' encountered. Defaulting to 'graph'.")
+                    logger.warning(f"Unknown widget type '{widget_type}' encountered. Defaulting to 'graph'.")
 
                 # Calculate grid position dynamically
                 grid_pos = grid_layout.get_next_grid_position(widget, panel_id)
