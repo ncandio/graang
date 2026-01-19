@@ -31,9 +31,12 @@ class DatadogDashboard:
                 self.validate_dashboard_structure()
                 self.parse_dashboard()
         except FileNotFoundError:
-            raise DashboardParsingError(f"Dashboard file '{self.dashboard_path}' not found. Please check the file path or ensure the file exists.")
-        except json.JSONDecodeError:
-            raise DashboardParsingError(f"'{self.dashboard_path}' contains invalid JSON. Please validate the file format.")
+            raise DashboardParsingError.file_not_found(self.dashboard_path)
+        except json.JSONDecodeError as e:
+            raise DashboardParsingError.invalid_json(self.dashboard_path, str(e))
+        except DashboardParsingError:
+            # Re-raise our custom errors without wrapping
+            raise
         except Exception as e:
             raise DashboardParsingError(f"Error reading dashboard: {str(e)}")
 
@@ -47,7 +50,7 @@ class DatadogDashboard:
 
         # Check if it has the required sections
         if 'widgets' not in self.data and 'graphs' not in self.data:
-            raise DashboardParsingError("Dashboard does not contain 'widgets' or 'graphs' section")
+            raise DashboardParsingError.missing_structure("'widgets' or 'graphs'")
 
         return True
 
@@ -75,7 +78,7 @@ class DatadogDashboard:
             self.widgets = self.data['graphs']
             self.process_widgets(self.widgets)
         else:
-            raise DashboardParsingError("Dashboard does not contain 'widgets' or 'graphs' section")
+            raise DashboardParsingError.missing_structure("'widgets' or 'graphs'")
 
     def process_widgets(self, widgets: List[Dict[str, Any]], is_nested: bool = False) -> None:
         """Process each widget and extract information"""

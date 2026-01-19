@@ -89,8 +89,12 @@ class DatadogToGrafanaConverter:
                 json.dump(self.grafana, f, indent=2)
             print(f"Grafana dashboard saved to {output_path}")
             return True
+        except PermissionError as e:
+            raise FileOperationError.cannot_write(output_path, "Permission denied")
+        except IOError as e:
+            raise FileOperationError.cannot_write(output_path, str(e))
         except Exception as e:
-            raise FileOperationError(f"Error saving Grafana dashboard: {str(e)}")
+            raise FileOperationError.cannot_write(output_path, f"Unexpected error: {str(e)}")
 
     def _convert_template_variables(self) -> None:
         """Convert Datadog template variables to Grafana format"""
