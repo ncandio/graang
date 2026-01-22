@@ -55,13 +55,13 @@ This project was originally developed at **Fidelity** as an example of **AI-assi
 ### Dashboard Conversion
 - Convert Datadog dashboards to Grafana JSON format
 - Support for multiple widget types (timeseries, query_value, toplist, note, heatmap, etc.)
-- Automatic translation of Datadog queries to Prometheus format
-- Template variable conversion
+- Template variable conversion (preserves all variables with defaults)
 - Layout preservation with grid positioning
-- The query conversion is somewhat simplified - complex Datadog queries might need manual adjustment after conversion
+- **Note:** Queries are preserved but require manual translation from Datadog to Prometheus format
+- Automatic query translation feature is under development
 - You may need to adjust datasource UIDs in the converted dashboard to match your Grafana setup
 - The code includes the original DatadogDashboard class for parsing, so it's fully self-contained
-- The conversion maintains the overall dashboard layout but might need fine-tuning for specific visualizations
+- The conversion maintains the overall dashboard layout structure
 
 ## Technical Highlights
 
@@ -136,29 +136,49 @@ graang DEMO/k8s-cluster-overview-datadog.json DEMO/k8s-cluster-overview-grafana.
 
 ## Installation
 
-### Install from source
+### Option 1: Run Without Installation (Recommended)
+
+The easiest way to use **graang** is with the provided executable wrappers:
+
+```bash
+# Clone the repository
+git clone https://github.com/ncandio/graang.git
+cd graang
+
+# Run directly - no installation needed!
+./graang input_datadog_dashboard.json output_grafana_dashboard.json
+./graang-analyze your_dashboard.json
+```
+
+### Option 2: Install from Source
 
 ```bash
 pip install -e .
 ```
 
-### Install with development dependencies
+### Option 3: Install with pipx (System-wide)
 
 ```bash
-pip install -e ".[dev]"
+pipx install .
 ```
 
 ## Usage
 
 ### Dashboard Conversion
 
-After installation, use the `graang` command:
+**Using the executable wrapper (no installation required):**
+
+```bash
+./graang input_datadog_dashboard.json output_grafana_dashboard.json
+```
+
+**After pip installation:**
 
 ```bash
 graang input_datadog_dashboard.json output_grafana_dashboard.json
 ```
 
-Or run directly without installation:
+**Or run as Python module:**
 
 ```bash
 python -m graang.datadog_to_grafana input_datadog_dashboard.json output_grafana_dashboard.json
@@ -166,44 +186,86 @@ python -m graang.datadog_to_grafana input_datadog_dashboard.json output_grafana_
 
 ### Dashboard Analysis
 
-Use the `graang-analyze` command:
+**Using the executable wrapper (no installation required):**
 
 ```bash
 # Analyze dashboard structure and print detailed report
-graang-analyze your_dashboard.json
+./graang-analyze your_dashboard.json
 
 # Convert dashboard to Grafana format
-graang-analyze your_dashboard.json -c -o output_dashboard.json
+./graang-analyze your_dashboard.json -c -o output_dashboard.json
 ```
 
-Or run directly without installation:
+**After pip installation:**
+
+```bash
+graang-analyze your_dashboard.json
+```
+
+**Or run as Python module:**
 
 ```bash
 python -m graang.datadog_dash_translator your_dashboard.json
 ```
 
-Additional options for dashboard analysis:
+**Additional options for dashboard analysis:**
 - `--grafana-folder`: Specify Grafana folder name for converted dashboard (default: Converted)
 - `--datasource`: Specify Grafana datasource name (default: prometheus)
 - `--time-from`: Dashboard time range from (e.g., now-6h)
 - `--time-to`: Dashboard time range to (e.g., now)
 
-## Examples
+## DEMO - Real-World Kubernetes Dashboard Conversion
 
-### DEMO Folder - Complete Conversion Example
+The `DEMO/` folder showcases a complete end-to-end conversion of a production Kubernetes monitoring dashboard from Datadog to Grafana Cloud.
 
-The `DEMO/` directory contains a real-world Kubernetes dashboard conversion:
+### What's in the DEMO
 
 - **k8s-cluster-overview-datadog.json** - Original Datadog dashboard (6.3 KB)
-- **k8s-cluster-overview-grafana.json** - Converted Grafana dashboard (9.5 KB)
-- **README.md** - Comprehensive conversion walkthrough
+  - 8 widgets monitoring cluster health
+  - 3 template variables (cluster, namespace, node)
+  - CPU, memory, pod status, and event monitoring
 
-**What it demonstrates:**
-- Schema translation complexity
-- Query conversion (Datadog → Prometheus)
-- Template variable mapping
-- Layout preservation
-- Success rate reporting (7/8 widgets = 87.5%)
+- **k8s-cluster-overview-grafana.json** - Converted Grafana dashboard (9.5 KB)
+  - 7 widgets successfully converted (87.5% success rate)
+  - All template variables preserved
+  - Ready to import into Grafana
+
+- **README.md** - Detailed conversion walkthrough explaining:
+  - Schema translation complexity
+  - Widget type mapping
+  - Layout preservation
+  - Query conversion approach
+
+### Conversion Results
+
+**Command used:**
+```bash
+./graang DEMO/k8s-cluster-overview-datadog.json DEMO/k8s-cluster-overview-grafana.json
+```
+
+**Success rate:** 7/8 widgets (87.5%)
+
+### Deployed to Grafana Cloud
+
+The converted dashboard was successfully imported and deployed to **Grafana Cloud**:
+
+<p align="center">
+  <img src="images/grafana-cloud-dashboard.png" alt="Dashboard running in Grafana Cloud" width="800">
+</p>
+
+*Kubernetes Cluster Overview dashboard running live in Grafana Cloud after conversion*
+
+### Important Note: Query Translation
+
+⚠️ **Current Limitation:** At this time, **graang does not automatically translate queries**. The tool performs schema conversion (widgets, layouts, variables), but **queries must be manually adjusted** to work with your Prometheus/Loki datasources.
+
+**What needs manual adjustment:**
+- Metric names (Datadog → Prometheus format)
+- Label syntax and filtering
+- Aggregation functions
+- Time range specifications
+
+**Coming Soon:** 🚀 An **automatic query translation feature** is currently under development and will be released in a future version.
 
 ### Additional Examples
 
@@ -276,31 +338,6 @@ The test suite validates:
 - Grid layout calculations
 - Error handling and validation
 - Security checks (path traversal, JSON depth, file size)
-
-### Code Quality
-
-```bash
-# Format code with Black
-black src/ tests/
-
-# Check code style
-flake8 src/ tests/
-
-# Type checking
-mypy src/graang/
-
-# Sort imports
-isort src/ tests/
-```
-
-## CI/CD
-
-The project uses GitHub Actions for continuous integration:
-
-- ✅ **Multi-version testing** - Python 3.7, 3.8, 3.9, 3.10, 3.11, 3.12
-- ✅ **Code quality** - flake8, black, mypy
-- ✅ **Test coverage** - pytest with coverage reporting
-- ✅ **Automated on** - Every push and pull request to main branch
 
 ## Contributing
 - This is an alpha version of the software. Contributions, bug reports, and feature requests are welcome.
