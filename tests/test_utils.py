@@ -1,7 +1,7 @@
 """Comprehensive tests for utility functions."""
 
 import unittest
-from utils import (
+from graang.utils import (
     convert_datadog_query_to_prometheus,
     build_grafana_target,
     convert_requests_to_targets,

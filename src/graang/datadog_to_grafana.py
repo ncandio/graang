@@ -7,10 +7,10 @@ import uuid
 import copy
 from typing import Dict, List, Any, Optional, Union
 
-from errors import ConversionError, FileOperationError
-from utils import convert_requests_to_targets, build_grafana_target, convert_datadog_query_to_prometheus, GridLayoutCalculator
-from validation import PathValidator, InputSanitizer
-from logging_config import get_logger
+from graang.errors import ConversionError, FileOperationError
+from graang.utils import convert_requests_to_targets, build_grafana_target, convert_datadog_query_to_prometheus, GridLayoutCalculator
+from graang.validation import PathValidator, InputSanitizer
+from graang.logging_config import get_logger
 
 logger = get_logger(__name__)
 
@@ -355,7 +355,7 @@ class DatadogToGrafanaConverter:
         return convert_datadog_query_to_prometheus(query)
 
 
-from datadog_dashboard import DatadogDashboard
+from graang.datadog_dashboard import DatadogDashboard
 
 
 class GrafanaDashboardExporter:
@@ -397,15 +397,19 @@ class GrafanaDashboardExporter:
             return False
 
 
-# Example usage
-if __name__ == "__main__":
+def main() -> None:
+    """Main entry point for the graang command-line tool"""
     import argparse
-    
+
     parser = argparse.ArgumentParser(description='Convert Datadog dashboard to Grafana format')
     parser.add_argument('input', help='Path to Datadog dashboard JSON file')
     parser.add_argument('output', help='Path to save Grafana dashboard JSON')
-    
+
     args = parser.parse_args()
-    
+
     success = GrafanaDashboardExporter.export(args.input, args.output)
     sys.exit(0 if success else 1)
+
+
+if __name__ == "__main__":
+    main()

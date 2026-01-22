@@ -1,0 +1,217 @@
+{
+  "title": "Kubernetes - Cluster Overview",
+  "description": "High-level view of cluster, node, pod and namespace health.",
+  "layout_type": "ordered",
+  "templated": true,
+  "template_variables": [
+    {
+      "name": "k8s_cluster",
+      "prefix": "kube_cluster",
+      "default": "*"
+    },
+    {
+      "name": "namespace",
+      "prefix": "kube_namespace",
+      "default": "*"
+    },
+    {
+      "name": "node",
+      "prefix": "kube_node",
+      "default": "*"
+    }
+  ],
+  "widgets": [
+    {
+      "definition": {
+        "title": "Cluster CPU usage",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "timeseries",
+        "requests": [
+          {
+            "q": "sum:kubernetes.cpu.usage.total{kube_cluster:$k8s_cluster} by {kube_cluster}",
+            "display_type": "line",
+            "style": {
+              "line_type": "solid",
+              "line_width": "normal",
+              "palette": "dog_classic"
+            }
+          },
+          {
+            "q": "sum:kubernetes.cpu.capacity{kube_cluster:$k8s_cluster} by {kube_cluster}",
+            "display_type": "line",
+            "style": {
+              "line_type": "dashed",
+              "line_width": "thin",
+              "palette": "grey"
+            }
+          }
+        ],
+        "yaxis": {
+          "scale": "linear"
+        }
+      },
+      "layout": { "x": 0, "y": 0, "width": 47, "height": 15 }
+    },
+    {
+      "definition": {
+        "title": "Cluster memory usage",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "timeseries",
+        "requests": [
+          {
+            "q": "sum:kubernetes.memory.usage{kube_cluster:$k8s_cluster} by {kube_cluster}",
+            "display_type": "line",
+            "style": {
+              "line_type": "solid",
+              "line_width": "normal",
+              "palette": "dog_classic"
+            }
+          },
+          {
+            "q": "sum:kubernetes.memory.capacity{kube_cluster:$k8s_cluster} by {kube_cluster}",
+            "display_type": "line",
+            "style": {
+              "line_type": "dashed",
+              "line_width": "thin",
+              "palette": "grey"
+            }
+          }
+        ],
+        "yaxis": {
+          "scale": "linear"
+        }
+      },
+      "layout": { "x": 47, "y": 0, "width": 47, "height": 15 }
+    },
+    {
+      "definition": {
+        "title": "Node status (Ready)",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "query_value",
+        "requests": [
+          {
+            "q": "sum:kubernetes_state.node.ready{kube_cluster:$k8s_cluster} by {kube_cluster}",
+            "aggregator": "last"
+          }
+        ],
+        "autoscale": true
+      },
+      "layout": { "x": 0, "y": 15, "width": 23, "height": 8 }
+    },
+    {
+      "definition": {
+        "title": "Node status (NotReady)",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "query_value",
+        "requests": [
+          {
+            "q": "sum:kubernetes_state.node.not_ready{kube_cluster:$k8s_cluster} by {kube_cluster}",
+            "aggregator": "last"
+          }
+        ],
+        "autoscale": true
+      },
+      "layout": { "x": 23, "y": 15, "width": 23, "height": 8 }
+    },
+    {
+      "definition": {
+        "title": "Pods by phase",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "timeseries",
+        "requests": [
+          {
+            "q": "sum:kubernetes_state.pod.ready{kube_cluster:$k8s_cluster,kube_namespace:$namespace} by {kube_namespace}",
+            "display_type": "area",
+            "style": {
+              "line_type": "solid",
+              "line_width": "normal",
+              "palette": "cool"
+            }
+          },
+          {
+            "q": "sum:kubernetes_state.pod.running{kube_cluster:$k8s_cluster,kube_namespace:$namespace} by {kube_namespace}",
+            "display_type": "area",
+            "style": {
+              "line_type": "solid",
+              "line_width": "normal",
+              "palette": "warm"
+            }
+          },
+          {
+            "q": "sum:kubernetes_state.pod.pending{kube_cluster:$k8s_cluster,kube_namespace:$namespace} by {kube_namespace}",
+            "display_type": "area",
+            "style": {
+              "line_type": "solid",
+              "line_width": "normal",
+              "palette": "orange"
+            }
+          },
+          {
+            "q": "sum:kubernetes_state.pod.failed{kube_cluster:$k8s_cluster,kube_namespace:$namespace} by {kube_namespace}",
+            "display_type": "area",
+            "style": {
+              "line_type": "solid",
+              "line_width": "normal",
+              "palette": "red"
+            }
+          }
+        ]
+      },
+      "layout": { "x": 0, "y": 23, "width": 47, "height": 15 }
+    },
+    {
+      "definition": {
+        "title": "Top namespaces by CPU",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "toplist",
+        "requests": [
+          {
+            "q": "top(sum:kubernetes.cpu.usage.total{kube_cluster:$k8s_cluster} by {kube_namespace}, 10, 'mean', 'desc')",
+            "style": {
+              "palette": "dog_classic"
+            }
+          }
+        ]
+      },
+      "layout": { "x": 47, "y": 23, "width": 23, "height": 15 }
+    },
+    {
+      "definition": {
+        "title": "Top namespaces by memory",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "toplist",
+        "requests": [
+          {
+            "q": "top(sum:kubernetes.memory.usage{kube_cluster:$k8s_cluster} by {kube_namespace}, 10, 'mean', 'desc')",
+            "style": {
+              "palette": "dog_classic"
+            }
+          }
+        ]
+      },
+      "layout": { "x": 70, "y": 23, "width": 24, "height": 15 }
+    },
+    {
+      "definition": {
+        "title": "Cluster events",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "log_stream",
+        "indexes": ["main"],
+        "query": "source:kubernetes status:error OR status:warning kube_cluster:$k8s_cluster",
+        "columns": ["timestamp", "service", "kube_cluster", "kube_namespace", "message"],
+        "show_date_column": true,
+        "show_message_column": true,
+        "message_display": "expanded-md"
+      },
+      "layout": { "x": 0, "y": 38, "width": 94, "height": 15 }
+    }
+  ]
+}

@@ -4,12 +4,9 @@ import sys
 import unittest
 from unittest.mock import patch, mock_open, MagicMock
 
-# Add parent directory to path so we can import the modules
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-from datadog_to_grafana import DatadogToGrafanaConverter, GrafanaDashboardExporter
-from datadog_dashboard import DatadogDashboard
-from errors import DashboardParsingError, FileOperationError
+from graang.datadog_to_grafana import DatadogToGrafanaConverter, GrafanaDashboardExporter
+from graang.datadog_dashboard import DatadogDashboard
+from graang.errors import DashboardParsingError, FileOperationError
 
 class MockDatadogDashboard:
     """Mock class for testing DatadogDashboard"""

@@ -9,8 +9,8 @@ import os
 import json
 from pathlib import Path
 from typing import Any, Dict, Optional
-from errors import FileOperationError, DashboardParsingError
-from logging_config import get_logger
+from graang.errors import FileOperationError, DashboardParsingError
+from graang.logging_config import get_logger
 
 logger = get_logger(__name__)
 

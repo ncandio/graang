@@ -5,9 +5,9 @@ import textwrap
 from operator import itemgetter
 from typing import Dict, List, Any, Optional, Union
 
-from errors import DashboardParsingError, FileOperationError
-from validation import validate_dashboard_file, InputSanitizer
-from logging_config import get_logger
+from graang.errors import DashboardParsingError, FileOperationError
+from graang.validation import validate_dashboard_file, InputSanitizer
+from graang.logging_config import get_logger
 
 logger = get_logger(__name__)
 

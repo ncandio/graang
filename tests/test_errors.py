@@ -4,13 +4,13 @@ import unittest
 import json
 import tempfile
 import os
-from errors import (
+from graang.errors import (
     DashboardParsingError,
     ConversionError,
     ValidationError,
     FileOperationError
 )
-from datadog_dashboard import DatadogDashboard
+from graang.datadog_dashboard import DatadogDashboard
 
 
 class TestDashboardParsingErrors(unittest.TestCase):

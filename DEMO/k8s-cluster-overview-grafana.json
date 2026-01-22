@@ -1,0 +1,415 @@
+{
+  "id": null,
+  "uid": "856fc5fb",
+  "title": "Kubernetes - Cluster Overview",
+  "tags": [
+    "converted-from-datadog"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 36,
+  "version": 1,
+  "refresh": "5s",
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Cluster CPU usage",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 11,
+        "h": 4
+      },
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "options": {
+        "legend": {
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(kubernetes.cpu.usage.total{{kube_cluster:$k8s_cluster}} by {{kube_cluster}})[5m]",
+          "refId": "A0",
+          "instant": false,
+          "legendFormat": ""
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(kubernetes.cpu.capacity{{kube_cluster:$k8s_cluster}} by {{kube_cluster}})[5m]",
+          "refId": "A1",
+          "instant": false,
+          "legendFormat": ""
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Cluster memory usage",
+      "gridPos": {
+        "x": 11,
+        "y": 0,
+        "w": 11,
+        "h": 4
+      },
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "options": {
+        "legend": {
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(kubernetes.memory.usage{{kube_cluster:$k8s_cluster}} by {{kube_cluster}})[5m]",
+          "refId": "A0",
+          "instant": false,
+          "legendFormat": ""
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(kubernetes.memory.capacity{{kube_cluster:$k8s_cluster}} by {{kube_cluster}})[5m]",
+          "refId": "A1",
+          "instant": false,
+          "legendFormat": ""
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Node status (Ready)",
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 6,
+        "h": 4
+      },
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "options": {
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(kubernetes_state.node.ready{{kube_cluster:$k8s_cluster}} by {{kube_cluster}})[5m]",
+          "refId": "A0",
+          "instant": false,
+          "legendFormat": ""
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Node status (NotReady)",
+      "gridPos": {
+        "x": 6,
+        "y": 4,
+        "w": 6,
+        "h": 4
+      },
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "options": {
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(kubernetes_state.node.not_ready{{kube_cluster:$k8s_cluster}} by {{kube_cluster}})[5m]",
+          "refId": "A0",
+          "instant": false,
+          "legendFormat": ""
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Pods by phase",
+      "gridPos": {
+        "x": 12,
+        "y": 4,
+        "w": 11,
+        "h": 4
+      },
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "options": {
+        "legend": {
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(kubernetes_state.pod.ready{{kube_cluster:$k8s_cluster,kube_namespace:$namespace}} by {{kube_namespace}})[5m]",
+          "refId": "A0",
+          "instant": false,
+          "legendFormat": ""
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(kubernetes_state.pod.running{{kube_cluster:$k8s_cluster,kube_namespace:$namespace}} by {{kube_namespace}})[5m]",
+          "refId": "A1",
+          "instant": false,
+          "legendFormat": ""
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(kubernetes_state.pod.pending{{kube_cluster:$k8s_cluster,kube_namespace:$namespace}} by {{kube_namespace}})[5m]",
+          "refId": "A2",
+          "instant": false,
+          "legendFormat": ""
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(kubernetes_state.pod.failed{{kube_cluster:$k8s_cluster,kube_namespace:$namespace}} by {{kube_namespace}})[5m]",
+          "refId": "A3",
+          "instant": false,
+          "legendFormat": ""
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Top namespaces by CPU",
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 6,
+        "h": 4
+      },
+      "type": "bargauge",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "basic",
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "top(sum(kubernetes.cpu.usage.total{{kube_cluster:$k8s_cluster}} by {{kube_namespace}}, 10, 'mean', 'desc'))[5m]",
+          "refId": "A0",
+          "instant": false,
+          "legendFormat": ""
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Top namespaces by memory",
+      "gridPos": {
+        "x": 6,
+        "y": 8,
+        "w": 6,
+        "h": 4
+      },
+      "type": "bargauge",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "basic",
+        "reduceOptions": {
+          "values": false,
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": ""
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "top(sum(kubernetes.memory.usage{{kube_cluster:$k8s_cluster}} by {{kube_namespace}}, 10, 'mean', 'desc'))[5m]",
+          "refId": "A0",
+          "instant": false,
+          "legendFormat": ""
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Cluster events",
+      "gridPos": {
+        "x": 0,
+        "y": 12,
+        "w": 23,
+        "h": 4
+      },
+      "type": "text",
+      "content": "Unsupported Datadog widget type: log_stream",
+      "mode": "markdown"
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "k8s_cluster",
+        "type": "custom",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "current": {
+          "value": "*",
+          "text": "*"
+        },
+        "options": [],
+        "query": "kube_cluster",
+        "skipUrlSync": false,
+        "hide": 0
+      },
+      {
+        "name": "namespace",
+        "type": "custom",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "current": {
+          "value": "*",
+          "text": "*"
+        },
+        "options": [],
+        "query": "kube_namespace",
+        "skipUrlSync": false,
+        "hide": 0
+      },
+      {
+        "name": "node",
+        "type": "custom",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "current": {
+          "value": "*",
+          "text": "*"
+        },
+        "options": [],
+        "query": "kube_node",
+        "skipUrlSync": false,
+        "hide": 0
+      }
+    ]
+  },
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  }
+}

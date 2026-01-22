@@ -7,10 +7,10 @@ from collections import defaultdict
 import textwrap
 from operator import itemgetter
 from typing import Dict, List, Any, Optional, Union, Tuple
-from datadog_dashboard import DatadogDashboard
-from errors import DashboardParsingError
-from utils import convert_requests_to_targets, build_grafana_target, GridLayoutCalculator
-from logging_config import get_logger
+from graang.datadog_dashboard import DatadogDashboard
+from graang.errors import DashboardParsingError
+from graang.utils import convert_requests_to_targets, build_grafana_target, GridLayoutCalculator
+from graang.logging_config import get_logger
 
 logger = get_logger(__name__)
 
